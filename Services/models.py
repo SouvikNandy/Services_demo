@@ -11,7 +11,8 @@ class Services(models.Model):
     provider = models.ForeignKey(ServiceProvider, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
     description = models.TextField()
-    convenience_charges = models.FloatField(default=500)
+    # convenience_charges = models.FloatField(default=500)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class Features(models.Model):
@@ -23,3 +24,4 @@ class ServiceFeaturePricing(models.Model):
     service = models.ForeignKey(Services, on_delete=models.CASCADE)
     feature = models.ForeignKey(Features, on_delete=models.CASCADE)
     pricing = models.FloatField()
+

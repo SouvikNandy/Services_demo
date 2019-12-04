@@ -9,5 +9,6 @@ class Client(models.Model):
 
 
 class ClientSubscriptions(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
     service_feature = models.ForeignKey(ServiceFeaturePricing, on_delete=models.CASCADE)
     sub_date = models.DateTimeField(auto_now_add=True)
