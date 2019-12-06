@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
+from Client import validators
 from Client.models import ClientSubscriptions
+from Services.models import ServiceFeaturePricing
 
 
 class ClientSubscriptionSerializer(serializers.ModelSerializer):
@@ -10,36 +12,53 @@ class ClientSubscriptionSerializer(serializers.ModelSerializer):
         model = ClientSubscriptions
         fields = ('id', 'service')
 
+    @staticmethod
+    def validate_service(attrs):
+        data = validators.validate_subscription_json(attrs)
+        return data
+
     def to_representation(self, instance):
         try:
-            service_list = list()
-            service_id_collection = dict()
-            data = {}
-            for i in instance:
-                srv = i.service_feature.service
-                ft = i.service_feature.feature
-                ft_data = {
-                    "name": ft.name,
-                    "description": ft.description,
-                    "price": i.service_feature.pricing,
-                    "subscription_date": i.sub_date.strftime("%Y-%m-%d"),
-                }
-                if srv.id not in service_id_collection:
-                    # service_id_collection.add(service_id)
-                    service_list.append({
-                        "id": srv.id,
-                        "provider": srv.provider.email,
-                        "features": [ft_data]
-                    })
-                    service_id_collection[srv.id] = len(service_list) - 1
-                else:
-                    index = service_id_collection[srv.id]
-                    service_list[index]["features"].append(ft_data)
-                # add features and prices
+            # subscribed_list is currently stored as string
+            sub_map = instance.subscribed_list.split(",")
+            subscribed_index = dict()
+            subscribed_services = list()
+            for i in sub_map:
+                obj = ServiceFeaturePricing.objects.get(id=i)
 
-                data = {
-                    "services": service_list,
-                }
+                feature_obj = obj.feature
+                feature = [{
+                    "id": feature_obj.id,
+                    "name": feature_obj.name,
+                    "description": feature_obj.description,
+                    "price": obj.pricing
+                }]
+
+                if obj.service_id in subscribed_index:
+                    index = subscribed_index[obj.service_id]
+                    subscribed_services[index]["features"].append(feature)
+
+                else:
+                    service_obj = obj.service
+                    subscribed_services.append({
+                        # "provider": {
+                        #     "email": service_obj.provider.email, "first_name": service_obj.provider.first_name,
+                        #     "last_name": service_obj.provider.last_name
+                        # },
+                        "id": service_obj.id,
+                        "name": service_obj.name,
+                        "description": service_obj.description,
+                        "features": feature
+                    })
+                    # store the index of service in subscribed_services
+                    index = len(subscribed_services) - 1
+                    subscribed_index[obj.service_id] = index
+            data = {
+                "id": instance.id,
+                "subscription_date": instance.sub_date.strftime("%Y-%m-%d"),
+                "is_active": instance.is_active,
+                "services": subscribed_services
+            }
             return data
         except:
             return instance

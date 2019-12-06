@@ -18,12 +18,19 @@ class ServicesSerializer(serializers.ModelSerializer):
         )
         model = Services
 
+    def validate(self, attrs):
+        if len(attrs["selected_features"]) != len(attrs["feature_prices"]):
+            raise serializers.ValidationError(
+                "Please make sure to provide prices for each features.")
+        return attrs
+
     def to_representation(self, instance):
         try:
             features = [{
                 "id": i.feature.id,
                 "name": i.feature.name,
                 "description": i.feature.description,
+                "is_active": i.is_active,
                 "price": i.pricing
             } for i in instance.servicefeaturepricing_set.all()]
 
@@ -36,6 +43,7 @@ class ServicesSerializer(serializers.ModelSerializer):
                 "name": instance.name,
                 "description": instance.description,
                 "created_at": instance.created_at.strftime("%Y-%m-%d"),
+                "is_active": instance.is_active,
                 "features": features
             }
             return data
@@ -47,4 +55,3 @@ class FeaturesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Features
         fields = ('id', 'name', 'description')
-

@@ -13,15 +13,18 @@ class Services(models.Model):
     description = models.TextField()
     # convenience_charges = models.FloatField(default=500)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
 
 
 class Features(models.Model):
     name = models.CharField(max_length=50)
     description = models.TextField()
+    is_active = models.BooleanField(default=True)
 
 
 class ServiceFeaturePricing(models.Model):
     service = models.ForeignKey(Services, on_delete=models.CASCADE)
     feature = models.ForeignKey(Features, on_delete=models.CASCADE)
     pricing = models.FloatField()
+    is_active = models.BooleanField(default=True)
 

@@ -35,7 +35,6 @@ class ServicesAPIView(APIView):
         :return:
         """
         serializer = self.serializer_class(data=request.data)
-        print("data sent to serializer")
         if not serializer.is_valid():
             return Response({"status": False, "message": serializer.errors, "data": None},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -63,7 +62,7 @@ class FeaturesAPIView(APIView):
         :param request:
         :return:
         """
-        available_features = self.features_model.objects.all()
+        available_features = self.features_model.objects.filter(is_active=True)
         serialized_data = self.serializer_class(available_features, many=True)
         return Response({"status": True, "message": "Available Features", "data": serialized_data.data},
                         status=status.HTTP_200_OK)
